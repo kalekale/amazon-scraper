@@ -27,7 +27,15 @@
 (defn get-links [d url]
   (taxi/to d url)
   (taxi/execute-script d "window.scrollTo(0, document.body.scrollHeight)")
-  (doall (map #(taxi/attribute d %1 :href) (taxi/find-elements d {:id "dealImage"})))) 
+  (doall (map #(taxi/attribute d %1 :href) (taxi/find-elements d {:id "dealImage"}))))
+
+(defn get-links-d [url]
+  (let [d (set-up-driver)]
+    (taxi/to d url)
+    (taxi/execute-script d "window.scrollTo(0, document.body.scrollHeight)")
+    (print "heihei")
+    (let [x (doall (map #(taxi/attribute d %1 :href) (taxi/find-elements d {:id "dealImage"})))]
+      x)))
 
 (defn test-driver []
   (let [d (set-up-driver)]
@@ -43,22 +51,39 @@
   (taxi/take-screenshot :file (truncate (str "./" (str/replace url #"/" "*") ".png") 100)))
 
 (defn screenshot-product [d url]
+  (print "here")
   (taxi/to d url)
   (taxi/take-screenshot d :file (truncate (str "./" (str/replace url #"/" "*") ".png") 100)))
 
-(defn screenshot-all-products-on-page [d url]
-  (map #(screenshot-product d %1) (get-links d url)))
+(defn screenshot-all-products-on-page [url]
+  (let [d (set-up-driver)]
+    (let [products (get-links d url)]
+      (print "***Products***\n")
+      (print products)
+      (print "\n")
+      (print (count products))
+      (doseq [product products]
+        (screenshot-product d product)))))
 
 (defn all-pages [urls]
-  (map #(screenshot-all-products-on-page (set-up-driver) %1) urls))
+  (doseq [url urls]
+    (screenshot-all-products-on-page url)))
 
 (defn create-agents [url]
   (set-up-driver)
   (taxi/to url))
 
 (defn run-async-all-products []
-  (let [agents (for [url (get-links)] (agent url))]
+  (let [agents (for [url (get-links)] (agent url)) ]
     (doseq [agent agents]
       (send-off agent screenshot-product))))
 
+(defn async-pages [urls]
+  (let [agents (for [url urls] (agent url))]
+    (print agents)
+    (doseq [agent agents]
+      (send-off agent screenshot-all-products-on-page))
+    (apply await agents)))
 
+
+ 
