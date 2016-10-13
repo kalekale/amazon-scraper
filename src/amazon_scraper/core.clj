@@ -85,7 +85,9 @@
   (taxi/to d url)
   (if (is-multiple? d)
     (print (str "\n" "multiple" "\n" url "\n"))
-    (print (str "\n" "single" "\n" url "\n"))))
+    (if (is-list? d)
+      (print (str "\nlist \n" url "\n"))
+      (print (str "\nsingle \n" url "\n")))))
 
 (defn screenshot-all-products-on-page [url]
   (let [d (set-up-driver)]
@@ -152,3 +154,6 @@
   (or
    (not (nil? (taxi/find-element d {:css ".a-nostyle.a-button-list.a-declarative.a-button-toggle-group.a-horizontal.a-spacing-top-micro.swatches"})))
    (not (nil? (taxi/find-element d {:css ".a-section.a-spacing-none.twisterShelf_swatchSection"})))))
+
+(defn is-list? [d]
+  (not (nil? (taxi/find-element d {:id "search-results"}))))
