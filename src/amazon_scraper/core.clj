@@ -29,7 +29,13 @@
 (defn get-links [d url]
   (taxi/to d url)
   (taxi/execute-script d "window.scrollTo(0, document.body.scrollHeight)")
-  (mapv #(taxi/attribute d % :href) (taxi/find-elements d {:id "dealImage"})))
+  (mapv #(try (taxi/attribute d % :href)
+              (catch Exception e (println (str "caught exception: " (.getMessage e)))
+                     nil))
+        (try
+          (taxi/find-elements d {:id "dealImage"})
+          (catch Exception e (println (str "caught exception: " (.getMessage e)))
+                 []))))
 
 
 
