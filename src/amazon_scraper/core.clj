@@ -157,3 +157,27 @@
 
 (defn is-list? [d]
   (not (nil? (taxi/find-element d {:id "search-results"}))))
+
+
+(defn url-has-changed? [old-url d]
+  (not (= (old-url (taxi/current-url d)))))
+
+(defn get-variations [d]
+  (for [elem
+          (taxi/find-elements-under
+           d
+           (taxi/find-element
+            d
+            {:css ".a-nostyle.a-button-list.a-declarative.a-button-toggle-group.a-horizontal.a-spacing-top-micro.swatches"})
+           {:tag :button})]
+    (let [url (taxi/current-url d)]
+      (taxi/click d elem)
+      (taxi/wait-until d #(not (= url (taxi/current-url %1))) 20000 100)
+      (taxi/current-url d))))
+
+
+(defn variations [url]
+  (let [d (driver)]
+    (taxi/to d url) 
+    (get-variations d)))
+
